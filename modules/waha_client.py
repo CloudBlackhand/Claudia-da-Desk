@@ -197,6 +197,13 @@ class WahaClient:
             logger.error(f"Erro ao parar sessão Waha: {e}")
             return False
 
-# Instância global do cliente Waha
-waha_client = WahaClient()
+# Instância global do cliente (será criada apenas quando necessário)
+waha_client = None
+
+def get_waha_client():
+    """Retorna instância do cliente Waha, criando se necessário"""
+    global waha_client
+    if waha_client is None:
+        waha_client = WahaClient()
+    return waha_client
 

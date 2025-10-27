@@ -25,11 +25,13 @@ def get_modules():
     """Importa módulos apenas quando necessário"""
     try:
         from modules.database import get_database
-        from modules.waha_client import waha_client
-        from modules.huggingface_client import hf_client
+        from modules.waha_client import get_waha_client
+        from modules.huggingface_client import get_huggingface_client
         from modules.message_service import message_service
         from modules.intent_classifier import intent_classifier
         db = get_database()
+        waha_client = get_waha_client()
+        hf_client = get_huggingface_client()
         return db, waha_client, hf_client, message_service, intent_classifier
     except Exception as e:
         logger.error(f"Erro ao importar módulos: {e}")

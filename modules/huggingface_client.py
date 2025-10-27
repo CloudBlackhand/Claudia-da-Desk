@@ -138,6 +138,13 @@ CONTEXTO DO CLIENTE:
             logger.error(f"Erro ao testar conexão Hugging Face: {e}")
             return False
 
-# Instância global do cliente Hugging Face
-hf_client = HuggingFaceClient()
+# Instância global do cliente (será criada apenas quando necessário)
+hf_client = None
+
+def get_huggingface_client():
+    """Retorna instância do cliente HuggingFace, criando se necessário"""
+    global hf_client
+    if hf_client is None:
+        hf_client = HuggingFaceClient()
+    return hf_client
 
