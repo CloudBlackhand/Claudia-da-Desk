@@ -3,8 +3,8 @@ import json
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional
-from database import db
-from waha_client import waha_client
+from .database import db
+from .waha_client import waha_client
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO)
