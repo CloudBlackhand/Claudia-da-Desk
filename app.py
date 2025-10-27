@@ -41,19 +41,8 @@ def get_modules():
 
 @app.route('/health')
 def health():
-    """Endpoint de health check simples"""
-    try:
-        db, waha_client, hf_client, message_service, intent_classifier = get_modules()
-        return jsonify({
-            'status': 'ok',
-            'timestamp': datetime.now().isoformat(),
-            'database': 'offline' if not db or not db.connection else 'online',
-            'waha': 'offline' if not waha_client or not waha_client.api_key else 'online',
-            'huggingface': 'offline' if not hf_client or not hf_client.api_key else 'online'
-        }), 200
-    except Exception as e:
-        logger.error(f"Erro no health check: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    """Endpoint de health check ultra simples"""
+    return jsonify({'status': 'ok'}), 200
 
 @app.route('/ping')
 def ping():
