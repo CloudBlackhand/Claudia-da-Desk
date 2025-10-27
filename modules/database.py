@@ -17,8 +17,8 @@ class Database:
     def connect(self):
         """Conecta ao banco PostgreSQL"""
         try:
-            # Tentar DATABASE_URL primeiro, depois DATABASE_PUBLIC_URL
-            database_url = os.getenv('DATABASE_URL') or os.getenv('DATABASE_PUBLIC_URL')
+            # Tentar DATABASE_PUBLIC_URL primeiro (URL externa), depois DATABASE_URL
+            database_url = os.getenv('DATABASE_PUBLIC_URL') or os.getenv('DATABASE_URL')
             if not database_url:
                 raise ValueError("DATABASE_URL não encontrada nas variáveis de ambiente")
             
