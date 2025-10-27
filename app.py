@@ -30,12 +30,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 @app.route('/')
 def index():
     """Serve o frontend"""
-    return send_from_directory('../frontend', 'index.html')
+    return send_from_directory('frontend', 'index.html')
 
 @app.route('/<path:filename>')
 def static_files(filename):
     """Serve arquivos estáticos do frontend"""
-    return send_from_directory('../frontend', filename)
+    return send_from_directory('frontend', filename)
 
 # ==================== API ENDPOINTS ====================
 
