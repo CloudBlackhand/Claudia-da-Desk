@@ -27,15 +27,38 @@ CORS(app)
 # Configurações
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+@app.route('/health')
+def health():
+    """Endpoint de health check"""
+    try:
+        return jsonify({
+            'status': 'ok',
+            'timestamp': datetime.now().isoformat(),
+            'database': 'offline' if not db.connection else 'online',
+            'waha': 'offline' if not waha_client.api_key else 'online',
+            'huggingface': 'offline' if not hf_client.api_key else 'online'
+        })
+    except Exception as e:
+        logger.error(f"Erro no health check: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/')
 def index():
     """Serve o frontend"""
-    return send_from_directory('frontend', 'index.html')
+    try:
+        return send_from_directory('frontend', 'index.html')
+    except Exception as e:
+        logger.error(f"Erro ao servir frontend: {e}")
+        return jsonify({'error': 'Frontend não disponível'}), 500
 
 @app.route('/<path:filename>')
 def static_files(filename):
     """Serve arquivos estáticos do frontend"""
-    return send_from_directory('frontend', filename)
+    try:
+        return send_from_directory('frontend', filename)
+    except Exception as e:
+        logger.error(f"Erro ao servir arquivo {filename}: {e}")
+        return jsonify({'error': 'Arquivo não encontrado'}), 404
 
 # ==================== API ENDPOINTS ====================
 
