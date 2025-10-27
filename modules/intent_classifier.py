@@ -188,5 +188,12 @@ class IntentClassifier:
         }
         return descriptions.get(category, 'Categoria desconhecida')
 
-# Instância global do classificador
-intent_classifier = IntentClassifier()
+# Instância global do classificador (será criada apenas quando necessário)
+intent_classifier = None
+
+def get_intent_classifier():
+    """Retorna instância do classificador de intenções, criando se necessário"""
+    global intent_classifier
+    if intent_classifier is None:
+        intent_classifier = IntentClassifier()
+    return intent_classifier

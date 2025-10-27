@@ -298,6 +298,13 @@ class MessageService:
             logger.error(f"Erro ao marcar clientes como cobrados: {e}")
             return False
 
-# Instância global do serviço
-message_service = MessageService()
+# Instância global do serviço (será criada apenas quando necessário)
+message_service = None
+
+def get_message_service():
+    """Retorna instância do serviço de mensagens, criando se necessário"""
+    global message_service
+    if message_service is None:
+        message_service = MessageService()
+    return message_service
 
