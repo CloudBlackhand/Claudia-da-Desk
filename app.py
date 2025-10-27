@@ -6,13 +6,6 @@ from flask_cors import CORS
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Importar módulos do projeto
-from modules.database import db
-from modules.waha_client import waha_client
-from modules.huggingface_client import hf_client
-from modules.message_service import message_service
-from modules.intent_classifier import intent_classifier
-
 # Carregar variáveis de ambiente
 load_dotenv()
 
@@ -27,20 +20,40 @@ CORS(app)
 # Configurações
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+# Função para importar módulos quando necessário
+def get_modules():
+    """Importa módulos apenas quando necessário"""
+    try:
+        from modules.database import db
+        from modules.waha_client import waha_client
+        from modules.huggingface_client import hf_client
+        from modules.message_service import message_service
+        from modules.intent_classifier import intent_classifier
+        return db, waha_client, hf_client, message_service, intent_classifier
+    except Exception as e:
+        logger.error(f"Erro ao importar módulos: {e}")
+        return None, None, None, None, None
+
 @app.route('/health')
 def health():
-    """Endpoint de health check"""
+    """Endpoint de health check simples"""
     try:
+        db, waha_client, hf_client, message_service, intent_classifier = get_modules()
         return jsonify({
             'status': 'ok',
             'timestamp': datetime.now().isoformat(),
-            'database': 'offline' if not db.connection else 'online',
-            'waha': 'offline' if not waha_client.api_key else 'online',
-            'huggingface': 'offline' if not hf_client.api_key else 'online'
-        })
+            'database': 'offline' if not db or not db.connection else 'online',
+            'waha': 'offline' if not waha_client or not waha_client.api_key else 'online',
+            'huggingface': 'offline' if not hf_client or not hf_client.api_key else 'online'
+        }), 200
     except Exception as e:
         logger.error(f"Erro no health check: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/ping')
+def ping():
+    """Endpoint de ping simples"""
+    return 'pong', 200
 
 @app.route('/')
 def index():
