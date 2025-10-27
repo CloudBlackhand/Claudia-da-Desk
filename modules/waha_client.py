@@ -13,16 +13,23 @@ class WahaClient:
         self.api_key = os.getenv('WAHA_API_KEY')
         self.api_url = os.getenv('WAHA_API_URL', 'http://localhost:3000')
         self.session_name = 'default'
-        self.headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {self.api_key}'
-        }
         
         if not self.api_key:
-            raise ValueError("WAHA_API_KEY não encontrada nas variáveis de ambiente")
+            logger.warning("WAHA_API_KEY não encontrada - Modo offline ativado")
+            self.api_key = None
+            self.headers = None
+        else:
+            self.headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {self.api_key}'
+            }
     
     def start_session(self) -> bool:
         """Inicia sessão Waha com store habilitado"""
+        if not self.api_key:
+            logger.warning("Waha client em modo offline - pulando start_session")
+            return False
+            
         try:
             url = f"{self.api_url}/api/sessions/start"
             
@@ -69,6 +76,10 @@ class WahaClient:
     
     def send_message(self, phone: str, message: str) -> bool:
         """Envia mensagem via WhatsApp"""
+        if not self.api_key:
+            logger.warning("Waha client em modo offline - pulando send_message")
+            return False
+            
         try:
             # Limpar número de telefone (remover caracteres especiais)
             clean_phone = ''.join(filter(str.isdigit, phone))
@@ -98,6 +109,10 @@ class WahaClient:
     
     def get_chat_messages(self, phone: str, limit: int = 10) -> List[Dict]:
         """Busca histórico de mensagens do chat"""
+        if not self.api_key:
+            logger.warning("Waha client em modo offline - pulando get_chat_messages")
+            return []
+            
         try:
             # Limpar número de telefone
             clean_phone = ''.join(filter(str.isdigit, phone))
