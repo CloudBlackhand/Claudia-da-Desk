@@ -17,10 +17,12 @@ class Database:
     def connect(self):
         """Conecta ao banco PostgreSQL"""
         try:
-            database_url = os.getenv('DATABASE_URL')
+            # Tentar DATABASE_URL primeiro, depois DATABASE_PUBLIC_URL
+            database_url = os.getenv('DATABASE_URL') or os.getenv('DATABASE_PUBLIC_URL')
             if not database_url:
                 raise ValueError("DATABASE_URL não encontrada nas variáveis de ambiente")
             
+            logger.info(f"Tentando conectar com: {database_url[:20]}...")
             self.connection = psycopg2.connect(database_url)
             logger.info("Conectado ao PostgreSQL com sucesso")
         except Exception as e:
