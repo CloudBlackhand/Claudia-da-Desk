@@ -221,6 +221,13 @@ Equipe de Cobrança"""
             self.connection.close()
             logger.info("Conexão com PostgreSQL fechada")
 
-# Instância global do banco
-db = Database()
+# Instância global do banco (será criada apenas quando necessário)
+db = None
+
+def get_database():
+    """Retorna instância do banco, criando se necessário"""
+    global db
+    if db is None:
+        db = Database()
+    return db
 

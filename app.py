@@ -24,11 +24,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 def get_modules():
     """Importa módulos apenas quando necessário"""
     try:
-        from modules.database import db
+        from modules.database import get_database
         from modules.waha_client import waha_client
         from modules.huggingface_client import hf_client
         from modules.message_service import message_service
         from modules.intent_classifier import intent_classifier
+        db = get_database()
         return db, waha_client, hf_client, message_service, intent_classifier
     except Exception as e:
         logger.error(f"Erro ao importar módulos: {e}")
