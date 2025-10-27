@@ -15,14 +15,18 @@ class WahaClient:
         self.session_name = 'default'
         self.headers = {
             'Content-Type': 'application/json',
-            'Authorization': f'Bearer {self.api_key}'
+            'Authorization': f'Bearer {self.api_key}' if self.api_key else ''
         }
         
         if not self.api_key:
-            raise ValueError("WAHA_API_KEY não encontrada nas variáveis de ambiente")
+            logger.warning("WAHA_API_KEY não encontrada - modo offline")
     
     def start_session(self) -> bool:
         """Inicia sessão Waha com store habilitado"""
+        if not self.api_key:
+            logger.warning("WAHA_API_KEY não configurada - pulando inicialização")
+            return False
+            
         try:
             url = f"{self.api_url}/api/sessions/start"
             

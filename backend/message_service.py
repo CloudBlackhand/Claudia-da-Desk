@@ -19,6 +19,7 @@ class MessageService:
             'erros': 0,
             'inicio': None
         }
+        logger.info("MessageService inicializado")
     
     def importar_json(self, json_data: Dict) -> Dict:
         """Importa dados do JSON para PostgreSQL"""

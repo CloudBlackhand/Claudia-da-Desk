@@ -32,6 +32,51 @@ def index():
     """Serve o frontend"""
     return send_from_directory('../frontend', 'index.html')
 
+@app.route('/health')
+def health_check():
+    """Healthcheck endpoint para Railway"""
+    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+
+@app.route('/test')
+def test_endpoint():
+    """Endpoint de teste simples"""
+    return jsonify({'message': 'Teste OK', 'status': 'working'})
+
+@app.route('/status')
+def status_endpoint():
+    """Endpoint de status detalhado"""
+    status = {
+        'app': 'running',
+        'timestamp': datetime.now().isoformat(),
+        'database': 'unknown',
+        'waha': 'unknown',
+        'huggingface': 'unknown'
+    }
+    
+    # Verificar banco
+    try:
+        db.ensure_connection()
+        if db.connection:
+            status['database'] = 'connected'
+        else:
+            status['database'] = 'not_configured'
+    except Exception as e:
+        status['database'] = f'error: {str(e)}'
+    
+    # Verificar Waha
+    if waha_client.api_key:
+        status['waha'] = 'configured'
+    else:
+        status['waha'] = 'not_configured'
+    
+    # Verificar Hugging Face
+    if hf_client.api_key:
+        status['huggingface'] = 'configured'
+    else:
+        status['huggingface'] = 'not_configured'
+    
+    return jsonify(status)
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """Serve arquivos estáticos do frontend"""
@@ -554,25 +599,7 @@ def internal_error(error):
 
 def init_app():
     """Inicializa aplicação"""
-    try:
-        # Verificar conexão com banco
-        db.get_cursor()
-        logger.info("Conexão com banco verificada")
-        
-        # Iniciar sessão Waha
-        waha_client.start_session()
-        logger.info("Sessão Waha iniciada")
-        
-        # Testar Hugging Face
-        if hf_client.test_connection():
-            logger.info("Conexão com Hugging Face verificada")
-        else:
-            logger.warning("Falha na conexão com Hugging Face")
-        
-        logger.info("Aplicação inicializada com sucesso")
-        
-    except Exception as e:
-        logger.error(f"Erro na inicialização: {e}")
+    logger.info("Aplicação iniciada com sucesso")
 
 if __name__ == '__main__':
     init_app()

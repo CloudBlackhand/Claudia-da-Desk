@@ -15,15 +15,19 @@ class HuggingFaceClient:
         self.api_url = f"https://api-inference.huggingface.co/models/{self.model_name}"
         
         self.headers = {
-            'Authorization': f'Bearer {self.api_key}',
+            'Authorization': f'Bearer {self.api_key}' if self.api_key else '',
             'Content-Type': 'application/json'
         }
         
         if not self.api_key:
-            raise ValueError("HUGGINGFACE_API_KEY não encontrada nas variáveis de ambiente")
+            logger.warning("HUGGINGFACE_API_KEY não encontrada - modo offline")
     
     def generate_response(self, prompt: str, max_length: int = 200) -> str:
         """Gera resposta usando modelo Hugging Face"""
+        if not self.api_key:
+            logger.warning("HUGGINGFACE_API_KEY não configurada - usando resposta padrão")
+            return self._get_fallback_response()
+            
         try:
             payload = {
                 "inputs": prompt,

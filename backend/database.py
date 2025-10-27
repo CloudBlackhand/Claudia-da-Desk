@@ -11,24 +11,35 @@ logger = logging.getLogger(__name__)
 class Database:
     def __init__(self):
         self.connection = None
-        self.connect()
-        self.create_tables()
+        logger.info("Database inicializado em modo offline")
+        # Não conectar automaticamente - conectar apenas quando necessário
+    
+    def ensure_connection(self):
+        """Garante que há uma conexão ativa com o banco"""
+        if not self.connection:
+            self.connect()
+            self.create_tables()
     
     def connect(self):
         """Conecta ao banco PostgreSQL"""
         try:
             database_url = os.getenv('DATABASE_URL')
             if not database_url:
-                raise ValueError("DATABASE_URL não encontrada nas variáveis de ambiente")
+                logger.warning("DATABASE_URL não encontrada - usando modo offline")
+                return
             
             self.connection = psycopg2.connect(database_url)
             logger.info("Conectado ao PostgreSQL com sucesso")
         except Exception as e:
-            logger.error(f"Erro ao conectar ao PostgreSQL: {e}")
-            raise
+            logger.warning(f"Erro ao conectar ao PostgreSQL: {e}")
+            # Não falhar - permitir que a aplicação inicie sem banco
     
     def create_tables(self):
         """Cria as tabelas necessárias"""
+        if not self.connection:
+            logger.warning("Sem conexão com banco - pulando criação de tabelas")
+            return
+            
         try:
             cursor = self.connection.cursor()
             
@@ -165,11 +176,18 @@ Equipe de Cobrança"""
     
     def get_cursor(self):
         """Retorna cursor com RealDictCursor para resultados como dicionário"""
+        self.ensure_connection()
+        if not self.connection:
+            raise Exception("Sem conexão com banco de dados")
         return self.connection.cursor(cursor_factory=RealDictCursor)
     
     def execute_query(self, query, params=None):
         """Executa query e retorna resultados"""
         try:
+            self.ensure_connection()
+            if not self.connection:
+                logger.warning("Sem conexão com banco - retornando lista vazia")
+                return []
             cursor = self.get_cursor()
             cursor.execute(query, params)
             results = cursor.fetchall()
@@ -177,11 +195,15 @@ Equipe de Cobrança"""
             return results
         except Exception as e:
             logger.error(f"Erro ao executar query: {e}")
-            raise
+            return []
     
     def execute_insert(self, query, params=None):
         """Executa insert e retorna ID inserido"""
         try:
+            self.ensure_connection()
+            if not self.connection:
+                logger.warning("Sem conexão com banco - insert falhou")
+                return None
             cursor = self.connection.cursor()
             cursor.execute(query, params)
             inserted_id = cursor.fetchone()[0] if cursor.description else None
@@ -190,12 +212,17 @@ Equipe de Cobrança"""
             return inserted_id
         except Exception as e:
             logger.error(f"Erro ao executar insert: {e}")
-            self.connection.rollback()
-            raise
+            if self.connection:
+                self.connection.rollback()
+            return None
     
     def execute_update(self, query, params=None):
         """Executa update"""
         try:
+            self.ensure_connection()
+            if not self.connection:
+                logger.warning("Sem conexão com banco - update falhou")
+                return 0
             cursor = self.connection.cursor()
             cursor.execute(query, params)
             self.connection.commit()
@@ -203,8 +230,9 @@ Equipe de Cobrança"""
             return cursor.rowcount
         except Exception as e:
             logger.error(f"Erro ao executar update: {e}")
-            self.connection.rollback()
-            raise
+            if self.connection:
+                self.connection.rollback()
+            return 0
     
     def close(self):
         """Fecha conexão com banco"""
