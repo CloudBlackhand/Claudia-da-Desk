@@ -20,17 +20,24 @@ class Database:
             # Tentar DATABASE_PUBLIC_URL primeiro (URL externa), depois DATABASE_URL
             database_url = os.getenv('DATABASE_PUBLIC_URL') or os.getenv('DATABASE_URL')
             if not database_url:
-                raise ValueError("DATABASE_URL não encontrada nas variáveis de ambiente")
+                logger.warning("DATABASE_URL não encontrada nas variáveis de ambiente - Modo offline")
+                self.connection = None
+                return
             
             logger.info(f"Tentando conectar com: {database_url[:20]}...")
             self.connection = psycopg2.connect(database_url)
             logger.info("Conectado ao PostgreSQL com sucesso")
         except Exception as e:
             logger.error(f"Erro ao conectar ao PostgreSQL: {e}")
-            raise
+            logger.warning("Continuando em modo offline")
+            self.connection = None
     
     def create_tables(self):
         """Cria as tabelas necessárias"""
+        if not self.connection:
+            logger.warning("Sem conexão com banco - Pulando criação de tabelas")
+            return
+            
         try:
             cursor = self.connection.cursor()
             
