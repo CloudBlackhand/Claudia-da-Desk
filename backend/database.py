@@ -28,6 +28,7 @@ class Database:
                 logger.warning("DATABASE_URL não encontrada - usando modo offline")
                 return
             
+            logger.info(f"Tentando conectar com DATABASE_URL: {database_url[:50]}...")
             self.connection = psycopg2.connect(database_url)
             logger.info("Conectado ao PostgreSQL com sucesso")
         except Exception as e:
