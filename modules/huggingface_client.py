@@ -14,16 +14,14 @@ class HuggingFaceClient:
         self.model_name = os.getenv('HUGGINGFACE_MODEL', 'mistralai/Mistral-7B-Instruct-v0.2')
         self.api_url = f"https://api-inference.huggingface.co/models/{self.model_name}"
         
-        if not self.api_key:
-            logger.warning("HUGGINGFACE_API_KEY não encontrada - Modo offline")
-            self.api_key = None
-            self.headers = None
-            return
-        
         self.headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
         }
+        
+        if not self.api_key:
+            logger.warning("HUGGINGFACE_API_KEY não encontrada - Modo offline ativado")
+            self.api_key = None
     
     def generate_response(self, prompt: str, max_length: int = 200) -> str:
         """Gera resposta usando modelo Hugging Face"""
