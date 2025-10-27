@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot WhatsApp - Sistema de Cobrança</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Bot WhatsApp - Sistema de Cobrança</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="label">Waha:</span>
+                    <span id="waha-status" class="status offline">Desconectado</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Hugging Face:</span>
+                    <span id="hf-status" class="status offline">Desconectado</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Seção 0: Controle do Bot -->
+            <section class="card">
+                <h2>🤖 Controle do Bot</h2>
+                <div class="bot-control-section">
+                    <div class="bot-status">
+                        <div class="status-indicator">
+                            <span class="label">Status do Bot:</span>
+                            <span id="bot-status" class="status offline">Desconectado</span>
+                        </div>
+                        <div class="bot-controls">
+                            <button id="toggle-bot" class="btn btn-primary">🔴 Desativar Bot</button>
+                            <button id="refresh-bot-status" class="btn btn-secondary">🔄 Atualizar</button>
+                        </div>
+                    </div>
+                    <div class="bot-info">
+                        <p><strong>Modo Coleta:</strong> <span id="modo-coleta">Ativo</span></p>
+                        <p><em>Quando desativado, o bot apenas coleta mensagens para treinamento. Quando ativado, responde automaticamente.</em></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 1: Upload de Dados -->
+            <section class="card">
+                <h2>📁 Upload de Dados</h2>
+                <div class="upload-area">
+                    <input type="file" id="json-file" accept=".json" style="display: none;">
+                    <button id="upload-btn" class="btn btn-primary">
+                        📤 Selecionar Arquivo JSON
+                    </button>
+                    <div id="upload-status" class="upload-status"></div>
+                </div>
+            </section>
+
+            <!-- Seção 2: Estatísticas -->
+            <section class="card">
+                <h2>📊 Estatísticas</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-clientes">0</div>
+                        <div class="stat-label">Total de Clientes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="nao-cobrados">0</div>
+                        <div class="stat-label">Não Cobrados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="cobrados">0</div>
+                        <div class="stat-label">Cobrados</div>
+                    </div>
+                </div>
+                <button id="refresh-stats" class="btn btn-secondary">🔄 Atualizar</button>
+            </section>
+
+            <!-- Seção 3: Template de Mensagem -->
+            <section class="card">
+                <h2>📝 Template de Mensagem</h2>
+                <div class="template-section">
+                    <div class="template-vars">
+                        <strong>Variáveis disponíveis:</strong>
+                        <code>{nome}</code>, <code>{protocolo}</code>, <code>{documento}</code>, 
+                        <code>{fpd_cobrado}</code>, <code>{spd_cobrado}</code>, <code>{urgencia_geral}</code>
+                    </div>
+                    <textarea id="template-text" placeholder="Digite o template da mensagem aqui..."></textarea>
+                    <button id="save-template" class="btn btn-primary">💾 Salvar Template</button>
+                </div>
+            </section>
+
+            <!-- Seção 4: Disparos -->
+            <section class="card">
+                <h2>🚀 Disparos</h2>
+                <div class="disparo-section">
+                    <div class="disparo-buttons">
+                        <button id="disparar-todos" class="btn btn-success">📤 Disparar Todos</button>
+                        <button id="disparar-nao-cobrados" class="btn btn-warning">📤 Disparar Não Cobrados</button>
+                        <button id="disparar-cobrados" class="btn btn-info">📤 Disparar Cobrados</button>
+                        <button id="parar-disparo" class="btn btn-danger" style="display: none;">⏹️ Parar Disparo</button>
+                    </div>
+                    
+                    <div id="disparo-progress" class="progress-section" style="display: none;">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="progress-text">0 / 0</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                    </div>
+                    
+                    <div id="disparo-log" class="log-section">
+                        <h3>📋 Log de Disparos</h3>
+                        <div id="log-content" class="log-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 5: Mensagens Coletadas -->
+            <section class="card">
+                <h2>📨 Mensagens Coletadas</h2>
+                <div class="mensagens-section">
+                    <div class="mensagens-header">
+                        <button id="refresh-mensagens" class="btn btn-secondary">🔄 Atualizar</button>
+                        <span id="total-mensagens" class="total-count">0 mensagens</span>
+                    </div>
+                    
+                    <div class="mensagens-list" id="mensagens-list">
+                        <!-- Mensagens carregadas via JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 6: Gerenciar Respostas -->
+            <section class="card">
+                <h2>🤖 Gerenciar Respostas Automáticas</h2>
+                <div class="respostas-section">
+                    <div class="respostas-header">
+                        <button id="add-categoria" class="btn btn-primary">➕ Nova Categoria</button>
+                        <button id="refresh-categorias" class="btn btn-secondary">🔄 Atualizar</button>
+                    </div>
+                    
+                    <div class="categorias-grid" id="categorias-grid">
+                        <!-- Categorias carregadas via JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 7: Lista de Clientes -->
+            <section class="card">
+                <h2>👥 Lista de Clientes</h2>
+                <div class="clientes-section">
+                    <div class="filters">
+                        <select id="filtro-clientes">
+                            <option value="todos">Todos</option>
+                            <option value="nao_cobrados">Não Cobrados</option>
+                            <option value="cobrados">Cobrados</option>
+                        </select>
+                        <button id="refresh-clientes" class="btn btn-secondary">🔄 Atualizar</button>
+                        <button id="marcar-cobrados" class="btn btn-success" style="display: none;">✅ Marcar como Cobrado</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table id="clientes-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="select-all"></th>
+                                    <th>Nome</th>
+                                    <th>Telefone</th>
+                                    <th>Protocolo</th>
+                                    <th>FPD</th>
+                                    <th>SPD</th>
+                                    <th>Urgência</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientes-tbody">
+                                <!-- Dados carregados via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirmar Ação</h3>
+            <p id="modal-message">Tem certeza que deseja continuar?</p>
+            <div class="modal-buttons">
+                <button id="modal-cancel" class="btn btn-secondary">Cancelar</button>
+                <button id="modal-confirm" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Categoria -->
+    <div id="categoria-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="categoria-modal-title">Nova Categoria</h3>
+            <form id="categoria-form">
+                <div class="form-group">
+                    <label for="categoria-nome">Nome da Categoria:</label>
+                    <input type="text" id="categoria-nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoria-resposta">Resposta Padrão:</label>
+                    <textarea id="categoria-resposta" rows="4" required placeholder="Digite a resposta que será enviada automaticamente..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="categoria-ativo" checked> Ativo
+                    </label>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="categoria-cancel" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" id="categoria-save" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
