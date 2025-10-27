@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 def test_database_connection():
     """Testa conexão com PostgreSQL"""
     
-    # Obter DATABASE_URL
-    database_url = os.getenv('DATABASE_URL')
+    # Tentar primeiro DATABASE_PRIVATE_URL (para conexões internas)
+    database_url = os.getenv('DATABASE_PRIVATE_URL') or os.getenv('DATABASE_URL')
     if not database_url:
         logger.error("❌ DATABASE_URL não encontrada!")
         return False

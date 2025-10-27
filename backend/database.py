@@ -23,7 +23,8 @@ class Database:
     def connect(self):
         """Conecta ao banco PostgreSQL"""
         try:
-            database_url = os.getenv('DATABASE_URL')
+            # Tentar primeiro DATABASE_PRIVATE_URL (para conexões internas)
+            database_url = os.getenv('DATABASE_PRIVATE_URL') or os.getenv('DATABASE_URL')
             if not database_url:
                 logger.warning("DATABASE_URL não encontrada - usando modo offline")
                 return

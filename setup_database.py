@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 def create_tables():
     """Cria as tabelas necessárias no PostgreSQL"""
     
-    # Obter DATABASE_URL das variáveis de ambiente
-    database_url = os.getenv('DATABASE_URL')
+    # Tentar primeiro DATABASE_PRIVATE_URL (para conexões internas)
+    database_url = os.getenv('DATABASE_PRIVATE_URL') or os.getenv('DATABASE_URL')
     if not database_url:
         logger.error("DATABASE_URL não encontrada!")
         logger.info("Execute: railway run python setup_database.py")
